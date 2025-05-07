@@ -1,0 +1,7 @@
+* text=auto
+
+# File eseguibili shell (evita problemi di permessi e fine linea)
+*.sh text eol=lf
+
+# Script batch (solo per Windows, quindi CRLF è ok)
+*.bat text eol=crlf
