@@ -131,7 +131,7 @@ class DetailContactWindow:
         Initialize the window, showing info about contact if passed as param.
         """
         self.id = id
-        self.contact = phonebook.get(id) if id else Contact()
+        self.contact = Contact() if id is None else phonebook.get(id)
         logging.info(f"Ho caricato il contatto {self.contact.first_name} a {self.id}")
 
         self.root = root
