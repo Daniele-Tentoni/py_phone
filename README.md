@@ -8,6 +8,10 @@ Per eseguire il codice usa il comando di *uv*:
 uv run py_phone.py
 ```
 
+## Test
+
+Ho configurato alcuni test automatici, eseguibili con `uv run python -m doctest <file_name>`.
+
 # Esercizio da eseguire
 
 Realizzare un progetto in Java che rappresenti una rubrica telefonica, un software che gestisca i contatti.

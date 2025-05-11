@@ -3,103 +3,29 @@ Phonebook project
 """
 
 import logging
-from tkinter import Toplevel, messagebox
-from typing import List, Optional
+from tkinter import Event, Toplevel, messagebox
+from typing import Optional
 import tkinter
+
+from py_phone.model.contact import Contact
+from py_phone.repository.contact_memory_repository import ContactMemoryRepository
+from py_phone.repository.contact_repository import ContactRepository
+from py_phone.repository.contact_file_repository import ContactFileRepository
 
 logging.basicConfig(level=logging.INFO)
 
 
-class Contact:
+phonebook: ContactRepository = ContactFileRepository()
+
+
+def control(root, text: str, row: int):
     """
-    The information about a person in the phonebook.
+    Create a new control to be placed in the grid.
     """
-
-    first_name: str
-    """
-    The first name of the person registered.
-    """
-
-    def __init__(
-        self,
-        first_name: str = "",
-        last_name: str = "",
-        address: str = "",
-        telephone: str = "",
-        age: Optional[int] = None,
-    ):
-        """
-        Initialize a new contact with basic info.
-        """
-        self.first_name = first_name
-        self.last_name = last_name
-        self.address = address
-        self.telephone = telephone
-        self.age = age
-    
-    def label(self):
-        """
-        Get the label to show in the phonebook.
-        """
-        return f"{self.first_name} {self.last_name}"
-
-
-class ContactRepository:
-    """
-    Connect to storage for contacts.
-    """
-
-    def __init__(self):
-        """
-        Initialize the storage for contacts.
-        """
-        pass
-
-    def append(self, c: Contact) -> Contact:
-        raise NotImplementedError()
-
-    def items(self) -> List[Contact]:
-        raise NotImplementedError()
-
-    def pop(self, id: int) -> Contact:
-        raise NotImplementedError()
-
-    def get(self, id: int) -> Contact:
-        raise NotImplementedError()
-
-    def set(self, id: int, c: Contact) -> Contact:
-        raise NotImplementedError()
-
-
-class ContactMemoryStorage(ContactRepository):
-    """
-    Save contacts in the local memory.
-    """
-
-    phonebook: List[Contact] = [Contact("1234")]
-
-    def __init__(self):
-        super().__init__()
-
-    def append(self, c: Contact) -> Contact:
-        self.phonebook.append(c)
-        return self.phonebook.index(c)
-
-    def items(self) -> List[Contact]:
-        return self.phonebook
-
-    def pop(self, id: int) -> Contact:
-        return self.phonebook.pop(id)
-
-    def get(self, id: int) -> Contact:
-        return self.phonebook[id]
-
-    def set(self, id: int, c: Contact) -> Contact:
-        self.phonebook[id] = c
-
-
-
-phonebook: ContactRepository = ContactMemoryStorage()
+    tkinter.Label(root, text=text).grid(row=row, column=0, padx=5, pady=5)
+    ent = tkinter.Entry(root)
+    ent.grid(row=row, column=1, columnspan=2, padx=5, pady=5)
+    return ent
 
 
 class DetailContactWindow:
@@ -117,14 +43,17 @@ class DetailContactWindow:
     The contact to be created or modified.
     """
 
-    def control(self, root, text: str, row: int):
-        """
-        Create a new control to be placed in the grid.
-        """
-        tkinter.Label(root, text=text).grid(row=row, column=0, padx=5, pady=5)
-        ent = tkinter.Entry(root)
-        ent.grid(row=row, column=1, columnspan=2, padx=5, pady=5)
-        return ent
+    def validate_age(self):
+        age = self.ent_age.get()
+        logging.debug(f"Validating age using {age} as value")
+        if age:
+            if age.isdigit() and int(age) in range(0, 200):
+                self.lbl_error.config(text="Age control is ok")
+                return True
+            self.lbl_error.config(text="Age is not a number")
+            return False
+        self.lbl_error.config(text="Age is not given")
+        return False
 
     def __init__(self, root: tkinter.Toplevel, id: Optional[int] = None):
         """
@@ -137,22 +66,26 @@ class DetailContactWindow:
         self.root = root
         root.title("Nuovo contatto")
 
-        self.ent_firstname = self.control(root, "Nome > ", 0)
+        self.ent_firstname = control(root, "Nome > ", 0)
         self.ent_firstname.insert(0, self.contact.first_name)
-        
-        self.ent_lastname = self.control(root, "Cognome > ", 1)
+
+        self.ent_lastname = control(root, "Cognome > ", 1)
         self.ent_lastname.insert(0, self.contact.last_name)
 
-        self.ent_telephone = self.control(root, "Tel > ", 1)
+        self.ent_telephone = control(root, "Tel > ", 2)
         self.ent_telephone.insert(0, self.contact.telephone)
 
-        self.ent_address = self.control(root, "Indirizzo > ", 1)
+        self.ent_address = control(root, "Indirizzo > ", 3)
         self.ent_address.insert(0, self.contact.address)
 
-        self.ent_age = self.control(root, "Età > ", 1)
-        given_age = self.contact.age or ''
-        logging.info(f"Given age is {given_age}")
+        self.ent_age = control(root, "Età > ", 4)
+        given_age = self.contact.age or ""
+        logging.info(f"Loading age {given_age} from {self.contact.age}.")
         self.ent_age.insert(0, given_age)
+        self.ent_age.configure(validatecommand=self.validate_age, validate="focusout")
+
+        self.lbl_error = tkinter.Label(root, text="Error frame")
+        self.lbl_error.grid(row=6, column=0, columnspan=3, padx=5, pady=5)
 
         # Controlli
         self.add_btn = tkinter.Button(root, text="Salva", command=self.create_contact)
@@ -170,7 +103,7 @@ class DetailContactWindow:
         telephone = self.ent_telephone.get().strip()
         address = self.ent_address.get().strip()
         age = int(self.ent_age.get().strip())
-        if self.id:
+        if self.id is not None:
             # It's an existing contact
             self.contact.first_name = firstname
             self.contact.last_name = lastname
@@ -231,11 +164,13 @@ class App:
         )
         self.btn_delete.grid(row=4, column=2, padx=5, pady=5)
 
-        self.update_phonelist()
+        self.update_phonelist(self.root)
 
     def new_contact(self):
         top_create = Toplevel(self.root)
-        top_create.bind("<Destroy>", lambda e: self.update_phonelist(e))
+        top_create.bind(
+            "<Destroy>", lambda e: self.update_phonelist(e)
+        )  # .protocol("WM_DELETE_WINDOW", )
         DetailContactWindow(top_create)
 
     def update_contact(self):
@@ -268,21 +203,33 @@ class App:
                 "Errore", "Seleziona almeno un contatto da eliminare."
             )
 
-    def update_phonelist(self, e=None):
+    def update_phonelist(self, e: Optional[Event | Toplevel] = None):
         """
         All contacts in the phonebook are listed in the table.
         """
         if e:
-            logging.info("Qualcosa è arrivato: %s", str(e))
+            logging.debug("Event : %s", str(e))
+            if isinstance(e, Toplevel):
+                e.destroy()
+            if isinstance(e, Event):
+                if not isinstance(e.widget, Toplevel):
+                    logging.debug(
+                        "It's not a toplevel destroy event, we don't update phonelist"
+                    )
+                    return
 
         self.table.delete(0, tkinter.END)
         for c in phonebook.items():
             self.table.insert(tkinter.END, f"{c.label()}")
 
-        logging.info("Updated phonelist")
+        logging.info(f"Updated phonelist from {str(e)}")
 
 
-if __name__ == "__main__":
+def main():
     widget = tkinter.Tk()
     App(widget)
     widget.mainloop()
+
+
+if __name__ == "__main__":
+    main()
