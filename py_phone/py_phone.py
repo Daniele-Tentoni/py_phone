@@ -82,7 +82,7 @@ class DetailContactWindow:
         given_age = self.contact.age or ""
         logging.info(f"Loading age {given_age} from {self.contact.age}.")
         self.ent_age.insert(0, given_age)
-        self.ent_age.configure(validatecommand=self.validate_age, validate="focusout")
+        self.ent_age.configure(validatecommand=self.validate_age, validate="focus")
 
         self.lbl_error = tkinter.Label(root, text="Error frame")
         self.lbl_error.grid(row=6, column=0, columnspan=3, padx=5, pady=5)
@@ -102,7 +102,12 @@ class DetailContactWindow:
         lastname = self.ent_lastname.get().strip()
         telephone = self.ent_telephone.get().strip()
         address = self.ent_address.get().strip()
-        age = int(self.ent_age.get().strip())
+        try:
+            age = int(self.ent_age.get().strip())
+        except Exception as e:
+            logging.error(f"Exception thrown from age conversion: {e}")
+            messagebox.showerror("Errore", "Hai inserito una età non valida")
+
         if self.id is not None:
             # It's an existing contact
             self.contact.first_name = firstname
