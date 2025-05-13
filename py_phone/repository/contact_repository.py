@@ -1,3 +1,4 @@
+from typing import Any, Generator
 from py_phone.model.contact import Contact
 
 
@@ -23,7 +24,7 @@ class ContactRepository:
         """
         raise NotImplementedError()
 
-    def items(self):
+    def items(self) -> Generator[Contact, Any, None]:
         """
         Return a list of all items in the repository. In some implementations it may use iterators instead return the entire list at once.
         """

@@ -8,6 +8,7 @@ from typing import Optional
 import tkinter
 
 from py_phone.model.contact import Contact
+from py_phone.repository.contact_folder_repository import ContactFolderRepository
 from py_phone.repository.contact_memory_repository import ContactMemoryRepository
 from py_phone.repository.contact_repository import ContactRepository
 from py_phone.repository.contact_file_repository import ContactFileRepository
@@ -15,7 +16,7 @@ from py_phone.repository.contact_file_repository import ContactFileRepository
 logging.basicConfig(level=logging.INFO)
 
 
-phonebook: ContactRepository = ContactFileRepository()
+phonebook: ContactRepository = ContactFolderRepository()
 
 
 def control(root, text: str, row: int):
@@ -213,9 +214,11 @@ class App:
         All contacts in the phonebook are listed in the table.
         """
         if e:
+            logging.info(f"Updated phonelist from {str(e)}")
             logging.debug("Event : %s", str(e))
             if isinstance(e, Toplevel):
                 e.destroy()
+
             if isinstance(e, Event):
                 if not isinstance(e.widget, Toplevel):
                     logging.debug(
@@ -226,8 +229,6 @@ class App:
         self.table.delete(0, tkinter.END)
         for c in phonebook.items():
             self.table.insert(tkinter.END, f"{c.label()}")
-
-        logging.info(f"Updated phonelist from {str(e)}")
 
 
 def main():
