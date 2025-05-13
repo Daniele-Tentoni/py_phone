@@ -14,7 +14,6 @@ class ContactFileFormatter:
     """
 
     separator = "~"
-    strips = " \t\n\r"
 
     def format(self, contact: Contact):
         return f"{contact.first_name}{self.separator}{contact.last_name}{self.separator}{contact.address}{self.separator}{contact.telephone}{self.separator}{contact.age}"
@@ -63,7 +62,7 @@ class ContactFileRepository(ContactRepository):
 
     def __init__(self):
         super().__init__()
-        self.file = "phonebook.txt"
+        self.file = "informazioni.txt"
         # Look for file
         if not os.path.isfile(self.file):
             with open(self.file, "w", encoding="utf-8") as w:
