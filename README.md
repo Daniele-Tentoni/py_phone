@@ -6,7 +6,10 @@ Per eseguire il codice usa il comando di *uv*:
 
 ```sh
 uv run py_phone.py
+uv run python -m py_phone
 ```
+
+Usa come username *phone* e password *admin*.
 
 ## Test
 

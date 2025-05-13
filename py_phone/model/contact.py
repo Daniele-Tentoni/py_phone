@@ -34,5 +34,8 @@ class Contact:
     def label(self):
         """
         Get the label to show in the phonebook.
+
+        >>> Contact("Daniele", "Tentoni").label()
+        'Daniele Tentoni'
         """
         return f"{self.first_name} {self.last_name}"

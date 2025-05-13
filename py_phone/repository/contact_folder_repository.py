@@ -41,11 +41,11 @@ class ContactFolderFormatter:
             raise ValueError("Given contact has less then 5 fields.")
 
         return Contact(
-            string[0],
-            string[1],
-            string[2],
-            string[3],
-            int("".join(string[4].split())),
+            string[0].strip(),
+            string[1].strip(),
+            string[2].strip(),
+            string[3].strip(),
+            int(string[4].strip()),
         )
 
 
